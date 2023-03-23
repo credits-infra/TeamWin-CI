@@ -26,5 +26,21 @@ jobs:
     # Runs a single command using the runners shell
     - name: Setup build environment
       run: |
-        echo "Hello ${{ github.event.inputs.name }}"
-        sudo apt-get update
+        echo "Hello ${{ github.event.inputs.rom_link }}"
+        sudo apt-get update && sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
+        sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
+        sudo ln -s /usr/bin/python3 /usr/bin/python
+        sudo curl -o /usr/local/bin/repo https://mirrors.tuna.tsinghua.edu.cn/git/git-repo
+        sudo chmod a+x /usr/local/bin/repo
+        export DIR_CURRENT=$(pwd)
+        mkdir -p $DIR_CURRENT/twrp
+    
+    - name: Sync twrp source code
+      run: |
+        cd $DIR_CURRENT/twrp
+        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
+        repo sync -j$(nproc --all)
+        git clone https://github.com/EndCredits/android_device_xiaomi_renoir-twrp -b android-12.1 device/xiaomi/renoir
+
+
+        
