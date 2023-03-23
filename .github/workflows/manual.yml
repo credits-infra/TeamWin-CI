@@ -49,8 +49,8 @@ jobs:
         cd $DIR_CURRENT/twrp
         git config --global user.name usrname
         git config --global user.email usr@email.com
-        repo init --color=always --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
-        repo sync -j$(nproc --all)
+        repo --color=always init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
+        repo --color=always sync -j$(nproc --all)
         git clone https://github.com/EndCredits/android_device_xiaomi_renoir-twrp -b android-13 device/xiaomi/renoir
 
     - name: Update twrp prebuilts from input rom
