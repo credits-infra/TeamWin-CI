@@ -62,6 +62,7 @@ jobs:
         cd vendor_boot && magiskboot unpack ../vendor_boot.img && cd ../
         cd $DIR_CURRENT/twrp/device/xiaomi/renoir/prebuilt/renoir/modules/1.1
         cp -r $DIR_CURRENT/payload_dumper/output/dlkm/lib/modules/* .
+        cp qti_battery_charger_main.ko qti_battery_charger_main_renoir.ko
         cd $DIR_CURRENT/twrp/device/xiaomi/renoir/prebuilt/renoir
         cp $DIR_CURRENT/payload_dumper/output/boot/kernel kernel
         cp $DIR_CURRENT/payload_dumper/output/vendor_boot/dtb dtb
