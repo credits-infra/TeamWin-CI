@@ -36,6 +36,9 @@ jobs:
         export DIR_CURRENT=$(pwd)
         echo "DIR_CURRENT=$DIR_CURRENT" >> $GITHUB_ENV
         mkdir -p $DIR_CURRENT/twrp
+        git clone https://github.com/vm03/payload_dumper.git $DIR_CURRENT/payload_dumper
+        cd $DIR_CURRENT/payload_dumper
+        pip3 install -r requirements.txt
         wget -O $DIR_CURRENT/payload_dumper/magiskboot.7z https://github.com/xiaoxindada/magiskboot_ndk_on_linux/releases/download/Magiskboot-25206-35/magiskboot.7z
         7z x $DIR_CURRENT/payload_dumper/magiskboot.7z
         sudo cp $DIR_CURRENT/payload_dumper/out/x86_64/magiskboot /usr/local/bin/magiskboot
