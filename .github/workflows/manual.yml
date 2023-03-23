@@ -34,6 +34,7 @@ jobs:
         sudo curl -o /usr/local/bin/repo https://mirrors.tuna.tsinghua.edu.cn/git/git-repo
         sudo chmod a+x /usr/local/bin/repo
         export DIR_CURRENT=$(pwd)
+        echo "DIR_CURRENT=$DIR_CURRENT" >> $GITHUB_ENV
         mkdir -p $DIR_CURRENT/twrp
         git clone https://github.com/vm03/payload_dumper.git $DIR_CURRENT/payload_dumper
         cd $DIR_CURRENT/payload_dumper
@@ -46,6 +47,7 @@ jobs:
     
     - name: Sync twrp source code
       run: |
+        export DIR_CURRENT=${{ env.DIR_CURRENT }}
         cd $DIR_CURRENT/twrp
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
         repo sync -j$(nproc --all)
@@ -53,6 +55,7 @@ jobs:
 
     - name: Update twrp prebuilts from input rom
       run: |
+        export DIR_CURRENT=${{ env.DIR_CURRENT }}
         cd $DIR_CURRENT/payload_dumper/
         python3 payload_dumper.py payload.bin
         cd output
@@ -70,6 +73,7 @@ jobs:
         
     - name: Starting build
       run: |
+        export DIR_CURRENT=${{ env.DIR_CURRENT }}
         cd $DIR_CURRENT/twrp
         . build/envsetup.sh
         lunch twrp_renoir-eng
@@ -78,8 +82,8 @@ jobs:
         cp out/target/product/renoir/boot.img release/twrp-v3.7.0-renoir-$(date +%Y%m%d-%H%M)-custom.img
         echo "GENERATED_BOOTIMG=twrp-v3.7.0-renoir-$(date +%Y%m%d-%H%M)-custom.img" >> $GITHUB_ENV
     
-    - name: Upload Kernel Image ZIP
+    - name: Upload generated bootimg
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.GENERATED_BOOTIMG }}
-        path: twrp/release/twrp*
+        path: ${{ env.DIR_CURRENT }}/twrp/release/twrp*
