@@ -79,5 +79,5 @@ jobs:
     - name: Upload Kernel Image ZIP
       uses: actions/upload-artifact@v3
       with:
-        name: ${{ env.FINAL_ZINAME }}
+        name: ${{ env.GENERATED_BOOTIMG }}
         path: twrp/release/twrp*
