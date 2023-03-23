@@ -40,7 +40,7 @@ jobs:
         cd $DIR_CURRENT/twrp
         repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
         repo sync -j$(nproc --all)
-        git clone https://github.com/EndCredits/android_device_xiaomi_renoir-twrp -b android-12.1 device/xiaomi/renoir
+        git clone https://github.com/EndCredits/android_device_xiaomi_renoir-twrp -b android-13 device/xiaomi/renoir
 
 
         
