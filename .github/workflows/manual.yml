@@ -27,13 +27,21 @@ jobs:
     - name: Setup build environment
       run: |
         echo "Hello ${{ github.event.inputs.rom_link }}"
-        sudo apt-get update && sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig
+        sudo apt-get update && sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 libncurses5 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig python3 pip3
         sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev
         sudo ln -s /usr/bin/python3 /usr/bin/python
         sudo curl -o /usr/local/bin/repo https://mirrors.tuna.tsinghua.edu.cn/git/git-repo
         sudo chmod a+x /usr/local/bin/repo
         export DIR_CURRENT=$(pwd)
         mkdir -p $DIR_CURRENT/twrp
+        git clone https://github.com/vm03/payload_dumper.git $DIR_CURRENT/payload_dumper
+        cd $DIR_CURRENT/payload_dumper
+        pip3 install -r requirements.txt
+        wget -O $DIR_CURRENT/payload_dumper/rom.zip ${{ github.event.inputs.rom_link }}
+        unzip rom.zip
+        wget -O $DIR_CURRENT/payload_dumper/magiskboot.7z https://github.com/xiaoxindada/magiskboot_ndk_on_linux/releases/download/Magiskboot-25206-35/magiskboot.7z
+        7z x $DIR_CURRENT/payload_dumper/magiskboot.7z
+        sudo cp $DIR_CURRENT/payload_dumper/out/x86_64/magiskboot /usr/local/bin/magiskboot
     
     - name: Sync twrp source code
       run: |
@@ -42,5 +50,34 @@ jobs:
         repo sync -j$(nproc --all)
         git clone https://github.com/EndCredits/android_device_xiaomi_renoir-twrp -b android-13 device/xiaomi/renoir
 
-
+    - name: Update twrp prebuilts from input rom
+      run: |
+        cd $DIR_CURRENT/payload_dumper/
+        python3 payload_dumper.py payload.bin
+        cd output
+        mkdir -p dlkm boot vendor_boot
+        sudo mount -r vendor_dlkm.img dlkm
+        cd boot && magiskboot unpack ../boot.img && cd ../
+        cd vendor_boot && magiskboot unpack ../vendor_boot.img && cd ../
+        cd $DIR_CURRENT/twrp/device/xiaomi/renoir/prebuilt/renoir/modules/1.1
+        cp -r $DIR_CURRENT/payload_dumper/output/dlkm/lib/modules/* .
+        cd $DIR_CURRENT/twrp/device/xiaomi/renoir/prebuilt/renoir
+        cp $DIR_CURRENT/payload_dumper/output/boot/kernel kernel
+        cp $DIR_CURRENT/payload_dumper/output/vendor_boot/dtb dtb
+        cp $DIR_CURRENT/payload_dumper/output/dtbo.img dtbo.img
         
+    - name: Starting build
+      run: |
+        cd $DIR_CURRENT/twrp
+        . build/envsetup.sh
+        lunch twrp_renoir-eng
+        m bootimage -j$(nproc --all)
+        mkdir release
+        cp out/target/product/renoir/boot.img release/twrp-v3.7.0-renoir-$(date +%Y%m%d-%H%M)-custom.img
+        echo "GENERATED_BOOTIMG=twrp-v3.7.0-renoir-$(date +%Y%m%d-%H%M)-custom.img" >> $GITHUB_ENV
+    
+    - name: Upload Kernel Image ZIP
+      uses: actions/upload-artifact@v3
+      with:
+        name: ${{ env.FINAL_ZINAME }}
+        path: twrp/release/twrp*
